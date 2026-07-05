@@ -27,6 +27,7 @@ The app:
      and convection. The ratio — *required sweating ÷ what the air allows* — is
      the "sweat load" meter. Below 100 % your sweat can compensate; above it, it
      can't.
+   - A dew point indicator that will tell you how "heavy" the air is
 3. Gives a color-coded verdict from "plenty of margin" to "sweat cannot cool
    you — cool down now."
 
@@ -39,13 +40,6 @@ This is a physics estimate. Real risk also depends on hydration,
 acclimatization, age, medication and **direct sun** (Open-Meteo reports shade
 air temperature; sun load is not modeled). If you feel unwell, stop and cool
 down regardless of what the app says.
-
-## Roadmap
-
-- **v2:** a "minutes of safe exposure" countdown — converting an evaporative
-  overload into an estimated time-to-danger via a core-temperature heat-storage
-  model. The model in `core.js` already computes the heat-storage rate needed for
-  this.
 
 ## Run locally
 
