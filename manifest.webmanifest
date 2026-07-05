@@ -1,0 +1,19 @@
+{
+  "name": "Can I Sweat?",
+  "short_name": "Can I Sweat?",
+  "description": "Tells you whether the current temperature and humidity let your sweat cool you.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f766e",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

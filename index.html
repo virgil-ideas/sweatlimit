@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>Can I Sweat?</title>
+  <meta name="description" content="Whether your sweat can cool you — the whole screen is the verdict." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sweatlimit.app/" />
+  <meta property="og:title" content="Can I Sweat? — Sweat Limit" />
+  <meta property="og:description" content="Whether your sweat can cool you — the whole screen is the verdict." />
+  <meta property="og:image" content="https://sweatlimit.app/icons/icon.svg" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary" />
+  <meta property="twitter:url" content="https://sweatlimit.app/" />
+  <meta property="twitter:title" content="Can I Sweat? — Sweat Limit" />
+  <meta property="twitter:description" content="Whether your sweat can cool you — the whole screen is the verdict." />
+  <meta property="twitter:image" content="https://sweatlimit.app/icons/icon.svg" />
+  
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="thermometer.css" />
+</head>
+<body>
+  <main class="tc" id="root" data-tier="ok">
+    <div class="tc__content">
+      <header class="tc__header">
+        <span class="tc__brand">Can I sweat?</span>
+        <span class="tc__place" id="place"></span>
+      </header>
+
+      <div class="tc__split">
+      <div class="tc__col tc__col--read">
+      <div class="tc__tempblock">
+        <div class="tc__tempmain">
+          <div class="tc__temp" id="temp">—</div>
+          <div class="tc__meta" id="meta">&nbsp;</div>
+        </div>
+        <div class="tc__muggy" id="muggyBlock">
+          <svg class="tc__muggysvg" viewBox="0 0 120 120" role="img" aria-label="Mugginess">
+            <polygon id="muggyFill" fill="#fff" fill-opacity="0.9" stroke-linejoin="round"></polygon>
+            <polygon id="muggyLine" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"></polygon>
+          </svg>
+          <div class="tc__muggyword" id="muggyWord">—</div>
+          <div class="tc__muggylabel" id="muggyDew">&nbsp;</div>
+        </div>
+      </div>
+
+      <h1 class="tc__sentence" id="sentence" aria-live="polite">Locating you…</h1>
+
+      <section class="tc__load" id="loadBlock" aria-label="Sweat load">
+        <div class="tc__loadlabels">
+          <span>Sweat load</span>
+          <span id="loadValue">—</span>
+        </div>
+        <div class="tc__track"><div class="tc__fill" id="loadFill"></div></div>
+      </section>
+      </div>
+
+      <div class="tc__col tc__col--act">
+      <div class="tc__control">
+        <div class="tc__label">WHAT ARE YOU DOING?</div>
+        <div class="tc__seg" id="activity" role="radiogroup" aria-label="Activity level">
+          <button type="button" class="seg" data-activity="rest">Resting</button>
+          <button type="button" class="seg is-active" data-activity="light">Light</button>
+          <button type="button" class="seg" data-activity="moderate">Moderate</button>
+          <button type="button" class="seg" data-activity="hard">Hard</button>
+        </div>
+      </div>
+
+      <div class="tc__control">
+        <div class="tc__label">HOW OLD ARE YOU?</div>
+        <div class="tc__seg" id="ageGroup" role="radiogroup" aria-label="Age group">
+          <button type="button" class="seg" data-age="infant">Infant</button>
+          <button type="button" class="seg" data-age="child">Child</button>
+          <button type="button" class="seg is-active" data-age="adult">Adult</button>
+          <button type="button" class="seg" data-age="older">65+</button>
+        </div>
+      </div>
+
+      <button type="button" class="tc__primary" id="refreshBtn">Use my location</button>
+
+      <div class="tc__utility">
+        <button type="button" class="tc__link" id="mapBtn">Pick on map instead</button>
+        <div class="tc__seg tc__seg--units" id="unitToggle" role="radiogroup" aria-label="Temperature units">
+          <button type="button" class="seg is-active" data-unit="C">°C</button>
+          <button type="button" class="seg" data-unit="F">°F</button>
+        </div>
+      </div>
+
+      <button type="button" class="tc__link tc__link--manual" id="manualToggle">Enter conditions manually</button>
+      <div class="tc__manual" id="manualPanel" hidden>
+        <div class="tc__manualgrid">
+          <label><span>Temp (<span class="unitTag">°C</span>)</span>
+            <input type="number" id="manualTemp" inputmode="decimal" step="0.1" placeholder="32" />
+          </label>
+          <label><span>Humidity (%)</span>
+            <input type="number" id="manualHum" inputmode="numeric" min="0" max="100" step="1" placeholder="70" />
+          </label>
+          <label><span>Wind (km/h)</span>
+            <input type="number" id="manualWind" inputmode="decimal" min="0" step="1" placeholder="10" />
+          </label>
+        </div>
+        <button type="button" class="tc__primary tc__primary--manual" id="applyManual">Calculate</button>
+      </div>
+      </div>
+      </div>
+
+      <p class="tc__caveat">Air-physics estimate — not medical advice. Uses shade temperature. If you feel unwell, stop and cool down.</p>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 8px;">
+        <a class="tc__skinlink" href="poster/">Poster view →</a>
+        <span class="tc__skinlink" style="opacity: 0.5;">·</span>
+        <a class="tc__skinlink" href="https://github.com/virgil-ideas/sweatlimit">Source on GitHub</a>
+      </div>
+    </div>
+  </main>
+
+  <dialog class="tc__mapmodal" id="mapModal">
+    <div class="tc__maphead">
+      <h2>Pick a location</h2>
+      <button type="button" class="tc__mapclose" id="mapClose" aria-label="Close">✕</button>
+    </div>
+    <div id="map"></div>
+    <p class="tc__maphint">Tap the map to drop a pin.</p>
+    <button type="button" class="tc__primary tc__mapconfirm" id="mapConfirm" disabled>Use this location</button>
+  </dialog>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="core.js"></script>
+  <script src="thermometer.js"></script>
+</body>
+</html>

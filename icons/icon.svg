@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Can I Sweat">
+  <rect width="512" height="512" rx="112" fill="#0b1220"/>
+  <!-- droplet -->
+  <path d="M256 96c0 0 120 132 120 216a120 120 0 0 1-240 0c0-84 120-216 120-216z"
+        fill="url(#g)"/>
+  <path d="M196 300a60 60 0 0 0 60 60" fill="none" stroke="#eaf2ff" stroke-width="18"
+        stroke-linecap="round" opacity="0.85"/>
+  <defs>
+    <linearGradient id="g" x1="136" y1="120" x2="376" y2="432" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5b9dff"/>
+      <stop offset="1" stop-color="#2f6bd8"/>
+    </linearGradient>
+  </defs>
+</svg>

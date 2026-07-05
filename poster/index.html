@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f1e8" />
+  <title>Can I Sweat? — Poster</title>
+  <meta name="description" content="Whether your sweat can cool you — the verdict as a headline." />
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="poster.css" />
+</head>
+<body>
+  <main class="po" id="root">
+    <div class="po__sheet">
+      <header class="po__masthead">
+        <span class="po__title">CAN I SWEAT?</span>
+        <span class="po__coords" id="place">—</span>
+      </header>
+
+      <div class="po__split">
+      <div class="po__col po__col--read">
+      <section class="po__verdict" aria-live="polite">
+        <div class="po__status" id="status">—</div>
+        <h1 class="po__headline">SWEAT<br><span class="po__word" id="word">—</span></h1>
+        <div class="po__air"><span class="po__airtag">AIR</span><span class="po__airword" id="airWord">—</span></div>
+        <p class="po__detail" id="detail">Locating you…</p>
+      </section>
+      </div>
+
+      <div class="po__col po__col--act">
+      <section class="po__load">
+        <div class="po__loadrow">
+          <span class="po__loadlabel">SWEAT LOAD</span>
+          <span class="po__pct" id="pct">—</span>
+        </div>
+        <div class="po__track"><div class="po__fill" id="barFill"></div></div>
+      </section>
+
+      <section class="po__grid">
+        <div class="po__cell po__cell--tl"><div class="po__k">TEMPERATURE</div><div class="po__v" id="cellTemp">—</div></div>
+        <div class="po__cell po__cell--tr"><div class="po__k">DEW POINT</div><div class="po__v" id="cellHum">—</div></div>
+        <div class="po__cell po__cell--bl"><div class="po__k">FEELS LIKE</div><div class="po__v" id="cellFeels">—</div></div>
+        <div class="po__cell"><div class="po__k">WET-BULB</div><div class="po__v" id="cellWet">—</div></div>
+      </section>
+
+      <section class="po__control">
+        <div class="po__label">WHAT ARE YOU DOING?</div>
+        <div class="po__seg" id="activity" role="radiogroup" aria-label="Activity level">
+          <button type="button" class="seg" data-activity="rest">Resting</button>
+          <button type="button" class="seg is-active" data-activity="light">Light</button>
+          <button type="button" class="seg" data-activity="moderate">Moderate</button>
+          <button type="button" class="seg" data-activity="hard">Hard</button>
+        </div>
+      </section>
+
+      <section class="po__control">
+        <div class="po__label">HOW OLD ARE YOU?</div>
+        <div class="po__seg po__seg--age" id="ageGroup" role="radiogroup" aria-label="Age group">
+          <button type="button" class="seg" data-age="infant">Infant</button>
+          <button type="button" class="seg" data-age="child">Child</button>
+          <button type="button" class="seg is-active" data-age="adult">Adult</button>
+          <button type="button" class="seg" data-age="older">65+</button>
+        </div>
+      </section>
+
+      <div class="po__actions">
+        <button type="button" class="po__btn po__btn--primary" id="refreshBtn">USE MY LOCATION</button>
+        <button type="button" class="po__btn" id="mapBtn">PICK ON MAP</button>
+      </div>
+      </div>
+      </div>
+
+      <div class="po__foot">
+        <p class="po__caveat">Air-physics estimate — <strong>not medical advice</strong>. Uses shade temperature. If you feel unwell, stop and cool down.</p>
+        <div class="po__seg po__seg--units" id="unitToggle" role="radiogroup" aria-label="Temperature units">
+          <button type="button" class="seg is-active" data-unit="C">°C</button>
+          <button type="button" class="seg" data-unit="F">°F</button>
+        </div>
+      </div>
+
+      <button type="button" class="po__manualtoggle" id="manualToggle">Enter conditions manually</button>
+      <div class="po__manual" id="manualPanel" hidden>
+        <div class="po__manualgrid">
+          <label><span>TEMP (<span class="unitTag">°C</span>)</span>
+            <input type="number" id="manualTemp" inputmode="decimal" step="0.1" placeholder="32" />
+          </label>
+          <label><span>HUMIDITY (%)</span>
+            <input type="number" id="manualHum" inputmode="numeric" min="0" max="100" step="1" placeholder="70" />
+          </label>
+          <label><span>WIND (KM/H)</span>
+            <input type="number" id="manualWind" inputmode="decimal" min="0" step="1" placeholder="10" />
+          </label>
+        </div>
+        <button type="button" class="po__btn po__btn--primary po__btn--calc" id="applyManual">CALCULATE</button>
+      </div>
+
+      <a class="po__skinlink" href="../">THERMOMETER VIEW →</a>
+    </div>
+  </main>
+
+  <dialog class="po__mapmodal" id="mapModal">
+    <div class="po__maphead">
+      <h2>PICK A LOCATION</h2>
+      <button type="button" class="po__mapclose" id="mapClose" aria-label="Close">✕</button>
+    </div>
+    <div id="map"></div>
+    <p class="po__maphint">Tap the map to drop a pin.</p>
+    <button type="button" class="po__btn po__btn--primary po__mapconfirm" id="mapConfirm" disabled>USE THIS LOCATION</button>
+  </dialog>
+
+  <script src="../vendor/leaflet/leaflet.js"></script>
+  <script src="../core.js"></script>
+  <script src="poster.js"></script>
+</body>
+</html>
