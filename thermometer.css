@@ -92,7 +92,7 @@ html, body {
   text-wrap: pretty;
 }
 
-/* Cooling-advice search link — only shown on hot (orange+) verdicts */
+/* Cooling-advice search link — only shown on warm (yellow+) verdicts */
 .tc__recs {
   align-self: flex-start;
   margin-top: 10px;
