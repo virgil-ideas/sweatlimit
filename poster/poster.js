@@ -44,15 +44,15 @@ function render(r, state) {
 
   const crit = r.w === Infinity;
   const pct = crit ? 120 : Math.min(120, Math.round(r.w * 100));
-  els.pct.textContent = crit ? '—' : `${pct}%`;
+  els.pct.textContent = crit ? 'OFF THE SCALE' : `${pct}%`;
   els.pct.style.color = accent;
   els.barFill.style.background = accent;
   els.barFill.style.width = `${Math.min(100, pct)}%`;
 
   els.airWord.textContent = r.muggy.word.toUpperCase();
   els.cellTemp.textContent = CIS.fmtTemp(r.t, state.unit);
-  els.cellHum.textContent = `${r.muggy.word} (${Math.round(CIS.toDisplay(r.dewC, state.unit))}°)`;
-  els.cellFeels.textContent = CIS.fmtTemp(r.feels, state.unit);
+  els.cellHum.textContent = `${CIS.fmtTemp(r.dewC, state.unit)} · ${Math.round(r.rh)}%`;
+  els.cellFeels.textContent = CIS.fmtTemp(r.feels, state.unit) + (r.feelsClipped ? '+' : '');
   els.cellWet.textContent = CIS.fmtTemp(r.Tw, state.unit);
   els.place.textContent = placeLabel(state.reading);
 }
@@ -62,7 +62,10 @@ function showMessage(headline, detail, opts) {
   els.word.textContent = '—';
   els.word.style.color = '';
   els.airWord.textContent = '—';
-  els.detail.textContent = headline + (detail ? ` ${detail}` : '');
+  // Headlines are unpunctuated fragments — add a sentence break before the
+  // detail unless the headline already ends with punctuation ("Locating you…").
+  const sep = /[.!?…]$/.test(headline) ? ' ' : '. ';
+  els.detail.textContent = headline + (detail ? sep + detail : '');
   els.pct.textContent = '—';
   els.barFill.style.width = '0%';
   if (opts && opts.showManual && els.manualPanel) els.manualPanel.hidden = false;

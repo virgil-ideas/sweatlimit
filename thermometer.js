@@ -71,7 +71,7 @@ function render(r, state) {
 
   els.temp.textContent = deg(r.t, state.unit);
   els.meta.textContent =
-    `feels like ${deg(r.feels, state.unit)} · wet-bulb ${deg(r.Tw, state.unit)}`;
+    `feels like ${deg(r.feels, state.unit)}${r.feelsClipped ? '+' : ''} · wet-bulb ${deg(r.Tw, state.unit)}`;
   els.sentence.textContent = r.headline;
   drawMuggy(r.muggy);
   els.muggyDew.textContent = `DEW PT ${deg(r.dewC, state.unit)}`;
