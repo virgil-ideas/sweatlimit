@@ -469,7 +469,10 @@
     const rd = state.reading;
     let where = '';
     if (rd && rd.source !== 'manual') {
-      if (rd.placeName) where = ` in ${rd.placeName}`;
+      // IP-derived place names carry a leading "≈" marker (see ipLocate) —
+      // it's for the on-screen label only and confuses the search query.
+      const name = rd.placeName && rd.placeName.replace(/^[≈~\s]+/, '');
+      if (name) where = ` in ${name}`;
       else if (rd.lat != null) where = ` near ${rd.lat.toFixed(1)}, ${rd.lon.toFixed(1)}`;
     }
     const query =
