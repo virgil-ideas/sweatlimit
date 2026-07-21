@@ -20,6 +20,8 @@
    * ------------------------------------------------------------------ */
 
   const SKIN_TEMP = 35;      // °C, typical warm-skin temperature
+  const HI_CHART_MAX = 58;   // °C — top of the NWS heat-index chart (137 °F);
+                             // the Rothfusz regression is unfitted beyond it
   const H_RADIATIVE = 4.5;   // W/m²·K, whole-body radiative coeff (de Dear 1997)
   const LEWIS = 16.5;        // W/m²·kPa per W/m²·K (Lewis relation for air)
   const MAX_SWEAT_COOLING = 450; // W/m² — peak evaporative cooling the body can
@@ -142,7 +144,13 @@
    */
   function evaluate(t, rh, windMs, activity, age) {
     const Tw = wetBulb(t, rh);
-    const feels = heatIndex(t, rh);
+    // The Rothfusz regression is only fitted up to the top of the NWS heat-index
+    // chart, 58 °C (137 °F); beyond it the polynomial explodes (45°/80% RH would
+    // read "feels like 116°"). Clamp the display value and flag it so the views
+    // can render "58°+" — at least this — instead of a meaningless number.
+    const feelsRaw = heatIndex(t, rh);
+    const feels = Math.min(feelsRaw, HI_CHART_MAX);
+    const feelsClipped = feelsRaw > HI_CHART_MAX;
     const dewC = dewPoint(t, rh);
     const ageAdj = AGE[age] ?? AGE.adult;
 
@@ -177,7 +185,7 @@
     }
 
     const level = classify(w, Tw, t, ageAdj);
-    return { t, rh, windMs, Tw, feels, dewC, muggy: mugginess(dewC), w, ...level };
+    return { t, rh, windMs, Tw, feels, feelsClipped, dewC, muggy: mugginess(dewC), w, ...level };
   }
 
   // Map wettedness (is sweat sufficient for this effort?) plus the absolute
@@ -205,11 +213,15 @@
   }
 
   // A fan/breeze only cools while the air is cooler than skin; once it's hotter,
-  // moving it just adds convective heat (WHO/CDC caution). Pivot on skin temp.
-  function fanAdvice(t) {
-    return t < SKIN_TEMP
-      ? 'A fan helps.'
-      : 'Skip the fan — the air is hotter than your skin, so it just blows heat at you.';
+  // moving it adds convective heat (WHO/CDC caution) — unless the air is dry
+  // enough that the extra evaporation still outruns that heat. Pivot on skin
+  // temp, then on wet-bulb for the dry-heat exception.
+  function fanAdvice(t, Tw) {
+    if (t < SKIN_TEMP) return 'A fan helps.';
+    // The dry-heat exception only holds a little above skin temp; by ~45 °C the
+    // convective gain swamps any extra evaporation, so never suggest a breeze.
+    if (t < 45 && Tw < 27) return 'A breeze can still help while you’re sweating — don’t rely on it.';
+    return 'Skip the fan — the air is hotter than your skin, so it just blows heat at you.';
   }
 
   function pickVerdict(w, Tw, t, age) {
@@ -231,8 +243,26 @@
     const TwR = Tw + age.offset;
     const tR = t + age.offset;
 
+    // Extreme-air floor: in very hot air the wet-bulb and sweat-load axes stay
+    // deceptively low when it's dry, yet heat pours in by convection and
+    // radiation — dangerous at rest no matter what evaporation says. NWS
+    // "extreme danger" starts around a 54 °C heat index; 52 °C air clears that
+    // in anything but bone-dry conditions, so escalate early.
+    if (tR >= 52) {
+      return {
+        level: 'crit',
+        status: 'Extreme heat',
+        headline: 'Extreme heat — get out of it now',
+        detail:
+          'Air this hot is dangerous even at rest, whatever the humidity. Get to ' +
+          'AC or cool water now — shade and sweat aren’t enough for long. ' +
+          fanAdvice(t, Tw),
+      };
+    }
+
     // Dangerous wet-bulb: risky even at rest, and worse if you can't keep up.
-    if (TwR >= 31) {
+    // Physical claim about the real wet-bulb, so it uses the unadjusted value.
+    if (Tw >= 31) {
       return {
         level: 'bad',
         status: 'Dangerous heat',
@@ -240,7 +270,34 @@
         detail:
           'The wet-bulb temperature is in the dangerous range — sweat can barely ' +
           'evaporate even at rest. Seek shade/AC, wet the skin, and limit exertion. ' +
-          fanAdvice(t) + ' Core temperature can climb here.',
+          fanAdvice(t, Tw) + ' Core temperature can climb here.',
+      };
+    }
+
+    // Not a dangerous wet-bulb outright, but a vulnerable age reaches the same
+    // strain (TwR = Tw + age.offset). Same level, honest age-framed wording.
+    if (TwR >= 31) {
+      return {
+        level: 'bad',
+        status: 'Dangerous at this age',
+        headline: 'At this age, this heat is dangerous',
+        detail:
+          'At this age these conditions strain like truly dangerous heat. Rest in ' +
+          'shade or AC, wet the skin, and limit exertion. ' + fanAdvice(t, Tw),
+      };
+    }
+
+    // Hot-air floor, second rung: from ~45 °C air (NWS "danger" heat index even
+    // when dry), heat builds at rest regardless of humidity or sweat balance.
+    if (tR >= 45) {
+      return {
+        level: 'bad',
+        status: 'Dangerous heat',
+        headline: 'Dangerous heat — even at rest',
+        detail:
+          'At this temperature heat builds even at rest, and staying cool burns ' +
+          'through fluid fast. Limit time outside, drink constantly, and rest in ' +
+          'shade or AC. ' + fanAdvice(t, Tw),
       };
     }
 
@@ -253,26 +310,41 @@
           status: 'Overwhelmed',
           headline: 'Overwhelmed — cool another way',
           detail:
-            'At this effort you’re making more heat than the warm, humid air lets you ' +
-            'sweat off. Core temperature will rise. Ease off, seek shade/AC, and wet the ' +
-            'skin. ' + fanAdvice(t),
+            'At this effort you’re making more heat than this air lets you sweat ' +
+            'off. Core temperature will rise. Ease off, seek shade/AC, and wet the ' +
+            'skin. ' + fanAdvice(t, Tw),
         };
       }
-      // Cool air but hard effort — normal, self-limiting, not dangerous.
+      // Hot-dry overload: the air is near or above skin temperature AND sweat
+      // can't keep up — heat comes in with no way to shed it. The 2° margin
+      // below skin temp is deliberate: readings can be off, escalate early.
+      if (t >= SKIN_TEMP - 2) {
+        return {
+          level: 'bad',
+          status: 'Overwhelmed',
+          headline: 'Overwhelmed by dry heat — cool another way',
+          detail:
+            'The air is near or above skin temperature and sweat can’t keep up ' +
+            'with this effort. Core temperature will rise. Stop, get to shade or ' +
+            'AC, and wet the skin. ' + fanAdvice(t, Tw),
+        };
+      }
+      // Cool air but hard effort — normal and self-limiting.
       return {
         level: 'warn',
         status: 'Maxed out',
         headline: 'Sweat is maxed out',
         detail:
-          'Working hard enough to outpace evaporation means warming up — the air ' +
-          'itself is cool, but this might be dangerous. Ease off or hydrate and it settles.',
+          'Working hard enough to outpace evaporation means warming up. Ease off ' +
+          'or hydrate and it settles.',
       };
     }
 
     // Sweat is keeping up, but the air itself is hot. A wet-bulb this high is a
     // genuine heat-stress environment even when the sweat load looks modest —
     // heavy sweating and fluid loss, so this must never read as "easy".
-    if (TwR >= 27) {
+    // Physical claim about the real environment, so it uses the real wet-bulb.
+    if (Tw >= 27) {
       return {
         level: 'warn',
         status: 'Heat stress',
@@ -280,14 +352,28 @@
         detail:
           'Sweat is keeping up for now, but this is a genuinely hot, humid ' +
           'environment. Expect heavy sweating and fluid loss — drink plenty, ' +
-          'rest in shade or AC, and avoid hard exertion.',
+          'rest in shade or AC, and avoid hard exertion. ' + fanAdvice(t, Tw),
+      };
+    }
+
+    // Below the heat-stress wet-bulb, but a vulnerable age reaches the same
+    // strain (TwR = Tw + age.offset). Same level, honest age-framed wording.
+    if (TwR >= 27) {
+      return {
+        level: 'warn',
+        status: 'Heat stress at this age',
+        headline: 'At this age, this is heat stress',
+        detail:
+          'At this age these conditions work like real heat stress. Drink plenty, ' +
+          'rest in shade or AC, and avoid hard exertion. ' + fanAdvice(t, Tw),
       };
     }
 
     // Air at or above skin temperature: it's adding heat, and evaporating sweat
     // is the ONLY cooling. Dry enough that wind still helps, but fluid is going
     // fast and a lull in wind or rise in humidity tips you over.
-    if (tR >= 35) {
+    // A physical claim, so it uses the REAL air temp — age can't change it.
+    if (t >= 35) {
       return {
         level: 'warn',
         status: 'Hotter than skin',
@@ -298,6 +384,20 @@
           'evaporation faster than it adds heat — but only while you keep sweating and ' +
           'stay hydrated, and a more humid wind would tip the other way. Fluid is going ' +
           'fast, so drink constantly and seek shade or AC.',
+      };
+    }
+
+    // Not hotter than skin, but close enough that a vulnerable age reaches the
+    // same strain (tR = t + age.offset). Same warn tier, honest wording — no
+    // false physical claim.
+    if (tR >= 35) {
+      return {
+        level: 'warn',
+        status: 'Harder at this age',
+        headline: 'This heat is harder on you',
+        detail:
+          'Not hotter than skin yet, but at this age it strains like it is. ' +
+          'Drink constantly, rest in shade or AC, and go easy. ' + fanAdvice(t, Tw),
       };
     }
 
