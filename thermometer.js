@@ -75,8 +75,8 @@ function render(r, state) {
     `feels like ${deg(r.feels, state.unit)}${r.feelsClipped ? '+' : ''} · wet-bulb ${deg(r.Tw, state.unit)}`;
   els.sentence.textContent = r.headline;
 
-  // From orange up, offer a Google search pre-filled with the situation.
-  const hot = tier === 'high' || tier === 'over' || tier === 'critical';
+  // From yellow up, offer a Google search pre-filled with the situation.
+  const hot = tier !== 'ok';
   els.recsLink.hidden = !hot;
   if (hot) els.recsLink.href = CIS.recsSearchUrl(r, state);
 

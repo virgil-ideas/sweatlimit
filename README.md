@@ -36,7 +36,7 @@ in conditions that would overwhelm you during hard exertion.
 
 ### Cooling recommendations
 
-When the Thermometer verdict turns orange or worse, a **"Google
+When the Thermometer verdict turns yellow or worse, a **"Google
 recommendations"** link appears under the verdict sentence. It opens a Google
 search pre-filled with your situation — current temperature, feels-like and
 humidity (in your chosen unit), your age group and activity level, your rough
