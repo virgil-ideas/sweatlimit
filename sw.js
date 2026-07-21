@@ -3,7 +3,7 @@
  * deploy is always picked up whole — a fresh HTML page can never end up paired
  * with a stale cached script. Third-party assets (fonts, map tiles) stay
  * cache-first since they rarely change and benefit from instant loads. */
-const CACHE = 'can-i-sweat-v28';
+const CACHE = 'can-i-sweat-v29';
 const SHELL = [
   './',
   'index.html',

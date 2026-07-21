@@ -34,6 +34,20 @@ The app:
 Activity level matters: at rest your body produces little heat, so sweat copes
 in conditions that would overwhelm you during hard exertion.
 
+### Cooling recommendations
+
+When the Thermometer verdict turns orange or worse, a **"Google
+recommendations"** link appears under the verdict sentence. It opens a Google
+search pre-filled with your situation — current temperature, feels-like and
+humidity (in your chosen unit), your age group and activity level, your rough
+location, and a plain-language question asking how to cool down safely — so the
+search AI can point you to concrete, local advice.
+
+Privacy note: the link only opens if you tap it, and the location it includes
+is deliberately coarse — the city-level place name when available, coordinates
+rounded to one decimal (~10 km) otherwise, and nothing at all for manually
+entered conditions.
+
 ### Not medical advice
 
 This is a physics estimate. Real risk also depends on hydration,

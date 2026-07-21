@@ -16,6 +16,7 @@ const els = {
   temp: document.getElementById('temp'),
   meta: document.getElementById('meta'),
   sentence: document.getElementById('sentence'),
+  recsLink: document.getElementById('recsLink'),
   loadValue: document.getElementById('loadValue'),
   loadFill: document.getElementById('loadFill'),
   place: document.getElementById('place'),
@@ -73,6 +74,12 @@ function render(r, state) {
   els.meta.textContent =
     `feels like ${deg(r.feels, state.unit)}${r.feelsClipped ? '+' : ''} · wet-bulb ${deg(r.Tw, state.unit)}`;
   els.sentence.textContent = r.headline;
+
+  // From orange up, offer a Google search pre-filled with the situation.
+  const hot = tier === 'high' || tier === 'over' || tier === 'critical';
+  els.recsLink.hidden = !hot;
+  if (hot) els.recsLink.href = CIS.recsSearchUrl(r, state);
+
   drawMuggy(r.muggy);
   els.muggyDew.textContent = `DEW PT ${deg(r.dewC, state.unit)}`;
 
@@ -90,6 +97,7 @@ function showMessage(headline, detail, opts) {
   els.temp.textContent = '—';
   els.meta.textContent = detail || ' ';
   els.sentence.textContent = headline;
+  els.recsLink.hidden = true;
   els.loadValue.textContent = '—';
   els.loadFill.style.width = '0%';
   drawMuggy(null);

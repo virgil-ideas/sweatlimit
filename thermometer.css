@@ -92,6 +92,19 @@ html, body {
   text-wrap: pretty;
 }
 
+/* Cooling-advice search link — only shown on hot (orange+) verdicts */
+.tc__recs {
+  align-self: flex-start;
+  margin-top: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.9;
+}
+.tc__recs[hidden] { display: none; }
+
 /* Sweat load bar — pushed toward the bottom */
 .tc__load { margin-top: auto; padding-top: 24px; }
 .tc__loadlabels {

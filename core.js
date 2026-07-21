@@ -446,6 +446,41 @@
   // Poster flourish — the single verb under "SWEAT".
   const TIER_WORD = { ok: 'WORKS.', watch: 'COPES.', high: 'STRAINS.', over: 'LOSES.', critical: 'FAILS.' };
 
+  // On hot verdicts we offer a pre-composed Google search so the search AI can
+  // hand the user concrete cooling advice for their exact situation. The query
+  // is a plain sentence: conditions + who/what they're doing + rough location.
+  // Location is deliberately coarse — place name if we have one, otherwise
+  // coordinates rounded to 1 decimal (~city level); manual entry sends none.
+  const RECS_AGE_LABEL = {
+    infant: 'an infant',
+    child: 'a child',
+    adult: 'an adult',
+    older: 'an older adult (65+)',
+  };
+  const RECS_ACTIVITY_LABEL = {
+    rest: 'resting',
+    light: 'doing light activity',
+    moderate: 'doing moderate activity',
+    hard: 'doing hard physical activity',
+  };
+
+  function recsSearchUrl(r, state) {
+    const u = state.unit;
+    const rd = state.reading;
+    let where = '';
+    if (rd && rd.source !== 'manual') {
+      if (rd.placeName) where = ` in ${rd.placeName}`;
+      else if (rd.lat != null) where = ` near ${rd.lat.toFixed(1)}, ${rd.lon.toFixed(1)}`;
+    }
+    const query =
+      `It is ${fmtTemp(r.t, u)} (feels like ${fmtTemp(r.feels, u)}) ` +
+      `with ${Math.round(r.rh)}% humidity${where}. ` +
+      `I am ${RECS_AGE_LABEL[state.age] || 'an adult'} ` +
+      `${RECS_ACTIVITY_LABEL[state.activity] || 'doing light activity'}. ` +
+      'What are the best ways to cool down and stay safe in this heat?';
+    return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+  }
+
   /* ------------------------------------------------------------------ *
    * Data layer
    * ------------------------------------------------------------------ */
@@ -871,7 +906,7 @@
     evaluate, wetBulb, heatIndex, dewPoint, mugginess, satVaporPressure, convectiveCoeff,
     SKIN_TEMP, METABOLIC, AGE,
     // design mapping
-    TIER_FROM_LEVEL, TIER_WORD,
+    TIER_FROM_LEVEL, TIER_WORD, recsSearchUrl,
     // data / geolocation
     fetchWeather, reverseGeocode, ipLocate, getPosition,
     // units
